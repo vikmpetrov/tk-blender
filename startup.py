@@ -13,6 +13,9 @@
 
 import os
 import sys
+from shutil import copyfile
+from glob import glob
+from getpass import getuser
 
 import sgtk
 from sgtk.platform import SoftwareLauncher, SoftwareVersion, LaunchInformation
@@ -82,6 +85,17 @@ class BlenderLauncher(SoftwareLauncher):
         # Run the engine's startup file file when Blender starts up
         # by appending it to the env PYTHONPATH.
         scripts_path = os.path.join(self.disk_location, "resources", "scripts")
+
+        # Copy startup scripts to local user directory:
+        startup_path = os.path.join(scripts_path, "startup")
+        blender_version = os.path.basename(os.path.dirname(exec_path)).split()[-1]
+        user_startup_path = r"C:\Users\{}\AppData\Roaming\Blender Foundation\Blender\{}\scripts\startup".format(
+            getuser(), blender_version
+        )
+        if not os.path.exists(user_startup_path):
+            os.makedirs(user_startup_path)
+        for startup_script in glob(os.path.join(startup_path, "*.py")):
+            copyfile(startup_script, os.path.join(user_startup_path, os.path.basename(startup_script)))
 
         startup_path = os.path.join(scripts_path, "startup", "Shotgun_menu.py")
 
